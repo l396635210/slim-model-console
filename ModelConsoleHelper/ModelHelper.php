@@ -21,12 +21,16 @@ class ModelHelper extends AbstractHelper
 
     protected $fieldTemplate;
 
+    protected $finderTemplate;
+
 
     public function __construct(ModelConsole $console)
     {
         $this->modelConsole = $console;
         $this->modelTemplate = file_get_contents(__DIR__.'/templates/model.tpl');
         $this->fieldTemplate = file_get_contents(__DIR__.'/templates/field.tpl');
+
+        $this->finderTemplate = file_get_contents(__DIR__.'/templates/finder.tpl');
 
     }
 
@@ -48,8 +52,10 @@ class ModelHelper extends AbstractHelper
 
             foreach ($relations[$this->bundle] as $model => $relation){
                 $modelFileContent = $this->makeModelContent($model);
+                $finderFileContent = $this->makeFinderContent($model);
                 $this->addFieldsToModelContent($modelFileContent, $relation);
                 $this->dumpModel($model, $modelFileContent);
+                $this->dumpFinder($model, $finderFileContent);
             }
             #var_dump($this->relations[$this->bundle]);
             $this->addFinishMessage();
@@ -61,6 +67,17 @@ class ModelHelper extends AbstractHelper
         $bundle = ucfirst($this->bundle);
         $model = ucfirst($model);
         $modelFIleContent = strtr($this->modelTemplate,[
+            '${app}' => $bundle,
+            '${Model}' => $model,
+        ]);
+
+        return $modelFIleContent;
+    }
+
+    protected function makeFinderContent($model){
+        $bundle = ucfirst($this->bundle);
+        $model = ucfirst($model);
+        $modelFIleContent = strtr($this->finderTemplate,[
             '${app}' => $bundle,
             '${Model}' => $model,
         ]);
@@ -96,11 +113,24 @@ class ModelHelper extends AbstractHelper
         $modelPath = $bundle."/Model/";
         $path = $appsPath."/".$modelPath.$model.".php";
         if(file_exists($path)){
-            copy($path, $path."~");
+            copy($path, $path.".bkp");
         }
         if(file_put_contents($path, $content)){
             $this->addMessage("put file {$path} done! create model {$model} success!");
         }
     }
 
+    protected function dumpFinder($model, $content){
+        $bundle = ucfirst($this->bundle);
+        $model = ucfirst($model);
+
+        $appsPath = $this->modelConsole->getAppsPath();
+        $finderPath = $bundle."/Finder/";
+        $path = $appsPath."/".$finderPath.$model."Finder.php";
+        var_dump($path);
+        if(!file_exists($path)){
+            file_put_contents($path, $content);
+            $this->addMessage("put file {$path} done! create model {$model} success!");
+        }
+    }
 }
