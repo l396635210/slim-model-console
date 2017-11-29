@@ -90,6 +90,8 @@ class ModelHelper extends AbstractHelper
         $modelContent .= strtr($this->fieldTemplate,[
             '${type}' => 'int',
             '${field}' => 'id',
+            '${getter}' => 'getID',
+            '${setter}' => 'setID',
         ]);
         foreach ($fields as $field=>$desc){
 
@@ -97,6 +99,8 @@ class ModelHelper extends AbstractHelper
             $fieldFileContent = strtr($this->fieldTemplate,[
                 '${type}' => $type,
                 '${field}' => $field,
+                '${getter}' => 'get'.ucfirst($field),
+                '${setter}' => 'set'.ucfirst($field),
             ]);
             $modelContent .= $fieldFileContent;
         }
