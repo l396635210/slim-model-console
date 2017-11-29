@@ -95,7 +95,7 @@ class ModelHelper extends AbstractHelper
 
             $type = MappingUtil::getFieldTypeFieldsDesc($desc);
             $fieldFileContent = strtr($this->fieldTemplate,[
-               '${type}' => $type,
+                '${type}' => $type,
                 '${field}' => $field,
             ]);
             $modelContent .= $fieldFileContent;
