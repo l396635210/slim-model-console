@@ -40,4 +40,8 @@ class MappingUtil
         return self::$columnFieldTypeRelations[$columnType];
     }
 
+    public static function _2hump($str, $ucFirst=true){
+        $tmp = ucwords(strtr($str,['_'=>' ']));
+        return $ucFirst ? strtr($tmp,[' '=>'']) : strtr(lcfirst($tmp), [' '=>'']);
+    }
 }

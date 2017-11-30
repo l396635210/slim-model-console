@@ -23,14 +23,16 @@ class ModelHelper extends AbstractHelper
 
     protected $finderTemplate;
 
+    protected $manyToOneTemplate;
+
 
     public function __construct(ModelConsole $console)
     {
         $this->modelConsole = $console;
         $this->modelTemplate = file_get_contents(__DIR__.'/templates/model.tpl');
         $this->fieldTemplate = file_get_contents(__DIR__.'/templates/field.tpl');
-
         $this->finderTemplate = file_get_contents(__DIR__.'/templates/finder.tpl');
+        $this->manyToOneTemplate = file_get_contents(__DIR__.'/templates/many-to-one.tpl');
 
     }
 
@@ -51,9 +53,12 @@ class ModelHelper extends AbstractHelper
             MappingUtil::addColumnFieldTypeRelations($mapping);
 
             foreach ($relations[$this->bundle] as $model => $relation){
-                $modelFileContent = $this->makeModelContent($model);
+                $modelFileContent = $this->makeModelContent($model,$relation);
                 $finderFileContent = $this->makeFinderContent($model);
                 $this->addFieldsToModelContent($modelFileContent, $relation);
+                $this->addMappingsToModelContent($modelFileContent, $relation);
+
+                $modelFileContent .= "\n\n}";
                 $this->dumpModel($model, $modelFileContent);
                 $this->dumpFinder($model, $finderFileContent);
             }
@@ -63,12 +68,17 @@ class ModelHelper extends AbstractHelper
 
     }
 
-    protected function makeModelContent($model){
+    protected function makeModelContent($model, $relation){
         $bundle = ucfirst($this->bundle);
         $model = ucfirst($model);
+        $use = '';
+        if(isset($relation['mapping'])){
+            $use = "use Liz\ModelManager\ModelManager;\n";
+        }
         $modelFIleContent = strtr($this->modelTemplate,[
             '${app}' => $bundle,
             '${Model}' => $model,
+            '${use}' => $use,
         ]);
 
         return $modelFIleContent;
@@ -99,13 +109,39 @@ class ModelHelper extends AbstractHelper
             $fieldFileContent = strtr($this->fieldTemplate,[
                 '${type}' => $type,
                 '${field}' => $field,
-                '${getter}' => 'get'.ucfirst($field),
-                '${setter}' => 'set'.ucfirst($field),
+                '${getter}' => 'get'.MappingUtil::_2hump($field),
+                '${setter}' => 'set'.MappingUtil::_2hump($field),
             ]);
             $modelContent .= $fieldFileContent;
         }
-        $modelContent .= "\n\n}";
 
+    }
+
+    protected function addMappingsToModelContent(&$modelContent, $relation){
+        if(isset($relation['mapping'])){
+            $mapping = $relation['mapping'];
+
+            foreach ($mapping as $field=>$info){
+                list($bundle, $model) = explode('.', $info['which']);
+                if(strtolower($bundle)==$this->bundle){
+                    $model = ucfirst($model);
+                }else{
+                    $model = ucfirst($bundle).'\Model\\'.ucfirst($model);
+                }
+                list($selfField, $toField) = explode('->',$info['how']);
+                $manyToOneContent = strtr($this->manyToOneTemplate,[
+                    '${model}' => $model,
+                    '${how}' => $info['how'],
+                    '${field}' => $field,
+                    '${getter}' => 'get'.MappingUtil::_2hump($field),
+                    '${setter}' => 'set'.MappingUtil::_2hump($field),
+                    '${selfField}' => $selfField,
+                    '${toGetter}' => 'get'.MappingUtil::_2hump($toField),
+                ]);
+                $modelContent .= $manyToOneContent;
+
+            }
+        }
     }
 
     protected function dumpModel($model, $content){
@@ -131,7 +167,7 @@ class ModelHelper extends AbstractHelper
         $appsPath = $this->modelConsole->getAppsPath();
         $finderPath = $bundle."/Finder/";
         $path = $appsPath."/".$finderPath.$model."Finder.php";
-        var_dump($path);
+
         if(!file_exists($path)){
             file_put_contents($path, $content);
             $this->addMessage("put file {$path} done! create model {$model} success!");
