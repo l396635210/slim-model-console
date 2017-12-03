@@ -110,10 +110,12 @@ class TableHelper extends AbstractHelper
         $sql = "SELECT COLUMN_NAME AS name, COLUMN_TYPE AS type, IS_NULLABLE AS nullable, 
                   COLUMN_DEFAULT as default_value, COLUMN_COMMENT AS comment
                   FROM information_schema.COLUMNS 
-                WHERE TABLE_NAME = '{$table}' AND COLUMN_NAME<>'id';";
+                WHERE TABLE_SCHEMA = '{$this->db['dbname']}' AND TABLE_NAME = '{$table}' AND COLUMN_NAME<>'id';";
         $sth = $this->pdo->prepare($sql);
         $sth->execute();
+        
         $fieldsInSchema = $sth->fetchAll();
+
         foreach ($fieldsInSchema as $item){
             $nullable = $item['nullable'] == 'NO' ? 'not null' : 'default null';
             $default = $item['default_value'] ? " default {$item['default_value']} " : ' ';
@@ -150,6 +152,7 @@ class TableHelper extends AbstractHelper
      * @return \PDOStatement
      */
     protected function execSQLAndAddMessage($sql){
+
         $sth = $this->pdo->prepare($sql);
         $sth->execute();
         $this->addMessage("EXEC SQL: {$sql}");

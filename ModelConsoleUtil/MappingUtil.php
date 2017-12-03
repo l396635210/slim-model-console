@@ -15,8 +15,10 @@ class MappingUtil
     protected static $columnFieldTypeRelations = [
         'int'       => 'int',
         'smallint'  => 'int',
+        'mediumint' => 'int',
         'bigint'    => 'int',
         'char'      => 'string',
+        'decimal'   => 'string',
         'varchar'   => 'string',
         'text'      => 'string',
         'tinyint'   => 'boolean',
