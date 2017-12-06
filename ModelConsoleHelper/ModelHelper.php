@@ -25,6 +25,7 @@ class ModelHelper extends AbstractHelper
 
     protected $manyToOneTemplate;
 
+    protected $oneToManyTemplate;
 
     public function __construct(ModelConsole $console)
     {
@@ -33,6 +34,7 @@ class ModelHelper extends AbstractHelper
         $this->fieldTemplate = file_get_contents(__DIR__.'/templates/field.tpl');
         $this->finderTemplate = file_get_contents(__DIR__.'/templates/finder.tpl');
         $this->manyToOneTemplate = file_get_contents(__DIR__.'/templates/many-to-one.tpl');
+        $this->oneToManyTemplate = file_get_contents(__DIR__.'/templates/one-to-many.tpl');
 
     }
 
@@ -122,26 +124,58 @@ class ModelHelper extends AbstractHelper
             $mapping = $relation['mapping'];
 
             foreach ($mapping as $field=>$info){
-                list($bundle, $model) = explode('.', $info['which']);
-                if(strtolower($bundle)==$this->bundle){
-                    $model = ucfirst($model);
-                }else{
-                    $model = ucfirst($bundle).'\Model\\'.ucfirst($model);
+                if($info['what']=='many-to-one'){
+                    $modelContent .= $this->dumpManyToOne($field, $info);
+                }else if($info['what']=='one-to-many'){
+                    $modelContent .= $this->dumpOneToMany($field, $info);
                 }
-                list($selfField, $toField) = explode('->',$info['how']);
-                $manyToOneContent = strtr($this->manyToOneTemplate,[
-                    '${model}' => $model,
-                    '${how}' => $info['how'],
-                    '${field}' => $field,
-                    '${getter}' => 'get'.MappingUtil::_2hump($field),
-                    '${setter}' => 'set'.MappingUtil::_2hump($field),
-                    '${selfField}' => $selfField,
-                    '${toGetter}' => 'get'.MappingUtil::_2hump($toField),
-                ]);
-                $modelContent .= $manyToOneContent;
 
             }
         }
+    }
+
+    protected function dumpManyToOne($field, $info){
+        list($bundle, $model) = explode('.', $info['which']);
+        if(strtolower($bundle)==$this->bundle){
+            $model = ucfirst($model);
+        }else{
+            $model = ucfirst($bundle).'\Model\\'.ucfirst($model);
+        }
+        list($selfField, $toField) = explode('->',$info['how']);
+        $manyToOneContent = strtr($this->manyToOneTemplate,[
+            '${model}' => $model,
+            '${how}' => $info['how'],
+            '${field}' => $field,
+            '${getter}' => 'get'.MappingUtil::_2hump($field),
+            '${setter}' => 'set'.MappingUtil::_2hump($field),
+            '${selfField}' => $selfField,
+            '${toGetter}' => 'get'.MappingUtil::_2hump($toField),
+        ]);
+        return $manyToOneContent;
+    }
+
+    protected function dumpOneToMany($field, $info){
+        list($bundle, $model) = explode('.', $info['which']);
+        if(strtolower($bundle)==$this->bundle){
+            $model = ucfirst($model);
+        }else{
+            $model = ucfirst($bundle).'\Model\\'.ucfirst($model);
+        }
+        list($selfField, $toField) = explode('->',$info['how']);
+        $oneToManyContent = strtr($this->oneToManyTemplate,[
+            '${model}' => $model,
+            '${how}' => $info['how'],
+            '${field}' => $field,
+            '${param}' => substr($field,0, -1),
+            '${getter}' => 'get'.MappingUtil::_2hump($field),
+            '${adder}' => 'add'.MappingUtil::_2hump(substr($field,0, -1)),
+            '${remover}' => 'remove'.MappingUtil::_2hump(substr($field,0, -1)),
+            '${selfField}' => $selfField,
+            '${toField}' => $toField,
+            '${toSetter}' => 'set'.MappingUtil::_2hump($toField),
+        ]);
+
+        return $oneToManyContent;
     }
 
     protected function dumpModel($model, $content){
