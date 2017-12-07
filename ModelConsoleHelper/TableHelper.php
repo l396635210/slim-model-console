@@ -72,14 +72,43 @@ class TableHelper extends AbstractHelper
                 }else{
                     $this->createTable($table, $fields);
                 }
-
+                if(isset($relation['mapping']) && $relation['mapping']){
+                    $this->mappingTable($relation);
+                }
             }
             $this->addFinishMessage();
         }
     }
 
+    protected function mappingTable($relation){
+        foreach ($relation['mapping'] as $item){
+            switch ($item['what']){
+                case 'many-to-many':
+                    $this->createManyToMany($item, $relation);
+                    break;
+            }
+
+        }
+    }
+
+    protected function createManyToMany($mapping, $relation){
+        list($bundle, $_model) = explode('.', $mapping['which']);
+        $_table = $relation['table'];
+        $tableInfo = [
+            $_table, $_model,
+        ];
+        asort($tableInfo);
+        $table = implode("_", $tableInfo);
+        if(!$this->isTableExists($table)){
+            $this->createTable($table,[
+                $_table.'_id' => 'int not null',
+                $_model.'_id' => 'int not null',
+            ]);
+        }
+    }
+
     protected function createTable($table, array $fields){
-        $sqlStart = "CREATE TABLE {$table} (\n";
+        $sqlStart = "CREATE TABLE IF NOT EXISTS {$table} (\n";
         $sqlBody = "id int(11) unsigned NOT NULL AUTO_INCREMENT,\n";
         $sqlEnd = ") ENGINE=InnoDB DEFAULT CHARSET={$this->db['charset']} COLLATE={$this->db['collate']};\n";
         foreach ($fields as $field=>$desc){
