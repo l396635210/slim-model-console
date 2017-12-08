@@ -29,6 +29,8 @@ class ModelHelper extends AbstractHelper
 
     protected $manyToManyTemplate;
 
+    protected $manyToManyCascadeTemplate;
+
     public function __construct(ModelConsole $console)
     {
         $this->modelConsole = $console;
@@ -38,6 +40,9 @@ class ModelHelper extends AbstractHelper
         $this->manyToOneTemplate = file_get_contents(__DIR__.'/templates/many-to-one.tpl');
         $this->oneToManyTemplate = file_get_contents(__DIR__.'/templates/one-to-many.tpl');
         $this->manyToManyTemplate = file_get_contents(__DIR__.'/templates/many-to-many.tpl');
+        $this->manyToManyCascadeTemplate = file_get_contents(
+            __DIR__.'/templates/many-to-many-cascade.tpl'
+        );
 
     }
 
@@ -201,7 +206,11 @@ class ModelHelper extends AbstractHelper
             $relation['table'],$_model
         ];
         asort($tableInfo);
-        $content = strtr($this->manyToManyTemplate,[
+        $template = $this->manyToManyTemplate;
+        if(isset($info['cascade'])&&$info['cascade']===true){
+            $template = $this->manyToManyCascadeTemplate;
+        }
+        $content = strtr($template,[
             '${model}' => $model,
             '${table}' => implode('_', $tableInfo),
             '${modelID}' => $relation['table']."_id",
