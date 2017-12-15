@@ -87,7 +87,7 @@ class ModelHelper extends AbstractHelper
         }
         $modelFIleContent = strtr($this->modelTemplate,[
             '${app}' => $bundle,
-            '${Model}' => $model,
+            '${Model}' => MappingUtil::_2hump($model),
             '${use}' => $use,
         ]);
 
@@ -171,7 +171,8 @@ class ModelHelper extends AbstractHelper
 
     protected function dumpOneToMany($field, $info){
         list($bundle, $_model) = explode('.', $info['which']);
-        if(strtolower($_model)==$this->bundle){
+
+        if(strtolower($bundle)==$this->bundle){
             $model = ucfirst($_model);
         }else{
             $model = ucfirst($bundle).'\Model\\'.ucfirst($_model);

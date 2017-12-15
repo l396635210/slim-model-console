@@ -6,7 +6,7 @@
     private $${field} = [];
 
     /**
-    * @param ${model} $${param}
+    * @param Object|${model} $${param}
     * @return $this
     */
     public function ${adder}(${model} $${param}){
