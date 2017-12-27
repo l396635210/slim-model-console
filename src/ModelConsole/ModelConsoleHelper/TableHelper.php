@@ -112,7 +112,7 @@ class TableHelper extends AbstractHelper
         $sqlBody = "id int(11) unsigned NOT NULL AUTO_INCREMENT,\n";
         $sqlEnd = ") ENGINE=InnoDB DEFAULT CHARSET={$this->db['charset']} COLLATE={$this->db['collate']};\n";
         foreach ($fields as $field=>$desc){
-            $desc = strpos($desc, ',') ? substr(trim($desc), 0, -1) : trim($desc);
+            $desc = trim($desc, ' \t\n\r\0\x0B,');
             $sqlBody .= "{$field} $desc,\n";
         }
         $sqlBody .= "PRIMARY KEY (id)\n";
@@ -173,7 +173,7 @@ class TableHelper extends AbstractHelper
 
     protected function modifyColumns($table, $columns){
         foreach ($columns as $column=>$desc){
-            $desc = strpos($desc, ',') ? substr(trim($desc), 0, -1) : trim($desc);
+            $desc = trim($desc, ' \t\n\r\0\x0B,');
             $sql = "ALTER TABLE {$table} MODIFY {$column} {$desc}";
             $this->execSQLAndAddMessage($sql);
         }
