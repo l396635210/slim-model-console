@@ -112,6 +112,7 @@ class TableHelper extends AbstractHelper
         $sqlBody = "id int(11) unsigned NOT NULL AUTO_INCREMENT,\n";
         $sqlEnd = ") ENGINE=InnoDB DEFAULT CHARSET={$this->db['charset']} COLLATE={$this->db['collate']};\n";
         foreach ($fields as $field=>$desc){
+            $desc = strpos($desc, ',') ? substr(trim($desc), 0, -1) : trim($desc);
             $sqlBody .= "{$field} $desc,\n";
         }
         $sqlBody .= "PRIMARY KEY (id)\n";
