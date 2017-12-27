@@ -173,6 +173,7 @@ class TableHelper extends AbstractHelper
 
     protected function modifyColumns($table, $columns){
         foreach ($columns as $column=>$desc){
+            $desc = strpos($desc, ',') ? substr(trim($desc), 0, -1) : trim($desc);
             $sql = "ALTER TABLE {$table} MODIFY {$column} {$desc}";
             $this->execSQLAndAddMessage($sql);
         }
