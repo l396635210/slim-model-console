@@ -1,5 +1,8 @@
 # Model Console
 
+## step 0
+    mv bin/ dir to project document _oot
+    
 ## create database
 ```angular2html
     php bin/console.php orm:database:create

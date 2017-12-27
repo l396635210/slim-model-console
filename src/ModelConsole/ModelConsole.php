@@ -153,9 +153,8 @@ class ModelConsole
 
             $this->addHelper('database', new DatabaseHelper($this));
 
-            $this->appsPath = $this->binPath."/../".$_SERVER['argv'][2].'/src/';
-
             if($helper!='database'){
+                $this->appsPath = $this->binPath."/../".$_SERVER['argv'][2].'/src/';
                 $this->addHelper('table', new TableHelper($this))
                     ->addHelper('model', new ModelHelper($this))
                 ;

@@ -26,7 +26,7 @@ class DatabaseHelper extends AbstractHelper
 
     public function installPDO(){
         $db = $this->db;
-        $pdo = new \PDO("mysql:host=" . $db['host'] . ";dbname=" . $db['dbname'].
+        $pdo = new \PDO("mysql:host=" . $db['host'] .
             ";charset=". $db['charset'].";collate=". $db['collate'],
             $db['user'], $db['pass'], ['port'=>$db['port']]);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -38,6 +38,20 @@ class DatabaseHelper extends AbstractHelper
 
         try{
             $sql = "create database {$this->db['dbname']} DEFAULT CHARSET {$this->db['charset']} COLLATE {$this->db['collate']};";
+
+            $sth = $this->pdo->prepare($sql);
+            $this->addMessage($this->dump($sql));
+            $sth->execute();
+        }catch (\Exception $exception){
+            $this->addError($exception->getCode(), $exception->getMessage())
+                ->addError(self::$errorException, $exception->getTraceAsString());
+
+        }
+    }
+
+    public function drop(){
+        try{
+            $sql = "drop database {$this->db['dbname']};";
 
             $sth = $this->pdo->prepare($sql);
             $this->addMessage($this->dump($sql));

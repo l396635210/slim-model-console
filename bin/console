@@ -1,0 +1,25 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: lz
+ * Date: 11/19/17
+ * Time: 10:06 AM
+ */
+header("Content-type: text/html; charset=utf-8");
+
+require __DIR__ . '/../vendor/autoload.php';
+// Instantiate the app
+$settings = require __DIR__ . '/../src/settings.php';
+
+$app = new \Slim\App($settings);
+
+$container = $app->getContainer();
+
+$container['model_console'] = function ($c){
+    $orm = \Symfony\Component\Yaml\Yaml::parse(file_get_contents(__DIR__."/../src/orm.yml"));
+    $orm['bin_path'] = __DIR__.'/';
+    return new \Liz\Console\ModelConsole($orm);
+
+};
+
+$app->getContainer()->get('model_console')->run();
