@@ -34,14 +34,14 @@ class ModelHelper extends AbstractHelper
     public function __construct(ModelConsole $console)
     {
         $this->modelConsole = $console;
-        $this->modelTemplate = file_get_contents(__DIR__.'/templates/model.tpl');
-        $this->fieldTemplate = file_get_contents(__DIR__.'/templates/field.tpl');
-        $this->finderTemplate = file_get_contents(__DIR__.'/templates/finder.tpl');
-        $this->manyToOneTemplate = file_get_contents(__DIR__.'/templates/many-to-one.tpl');
-        $this->oneToManyTemplate = file_get_contents(__DIR__.'/templates/one-to-many.tpl');
-        $this->manyToManyTemplate = file_get_contents(__DIR__.'/templates/many-to-many.tpl');
+        $this->modelTemplate = file_get_contents(__DIR__ . '/templates/model.tpl');
+        $this->fieldTemplate = file_get_contents(__DIR__ . '/templates/field.tpl');
+        $this->finderTemplate = file_get_contents(__DIR__ . '/templates/finder.tpl');
+        $this->manyToOneTemplate = file_get_contents(__DIR__ . '/templates/many-to-one.tpl');
+        $this->oneToManyTemplate = file_get_contents(__DIR__ . '/templates/one-to-many.tpl');
+        $this->manyToManyTemplate = file_get_contents(__DIR__ . '/templates/many-to-many.tpl');
         $this->manyToManyCascadeTemplate = file_get_contents(
-            __DIR__.'/templates/many-to-many-cascade.tpl'
+            __DIR__ . '/templates/many-to-many-cascade.tpl'
         );
 
     }
