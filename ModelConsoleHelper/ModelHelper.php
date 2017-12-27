@@ -236,8 +236,7 @@ class ModelHelper extends AbstractHelper
         $model = ucfirst($model);
 
         $appsPath = $this->modelConsole->getAppsPath();
-        $modelPath = $bundle."/Model/";
-        $path = $appsPath."/".$modelPath.$model.".php";
+        $path = $appsPath."Model/".$model.".php";
         if(file_exists($path)){
             copy($path, $path.".bkp");
         }
@@ -247,12 +246,10 @@ class ModelHelper extends AbstractHelper
     }
 
     protected function dumpFinder($model, $content){
-        $bundle = ucfirst($this->bundle);
         $model = ucfirst($model);
 
         $appsPath = $this->modelConsole->getAppsPath();
-        $finderPath = $bundle."/Finder/";
-        $path = $appsPath."/".$finderPath.$model."Finder.php";
+        $path = $appsPath."Finder/".$model."Finder.php";
 
         if(!file_exists($path)){
             file_put_contents($path, $content);

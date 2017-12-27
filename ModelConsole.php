@@ -33,6 +33,11 @@ class ModelConsole
     protected $mapping;
 
     /**
+     * @var
+     */
+    protected $binPath;
+
+    /**
      * @var string
      */
     protected $appsPath;
@@ -126,7 +131,7 @@ class ModelConsole
 
         $this->db = $db;
         $this->relations = $relations;
-        $this->appsPath = $orm['apps_path'];
+        $this->binPath = $orm['bin_path'];
         $this->mapping = $mapping;
 
 
@@ -147,6 +152,8 @@ class ModelConsole
             $method = $command[2];
 
             $this->addHelper('database', new DatabaseHelper($this));
+
+            $this->appsPath = $this->binPath."/../".$_SERVER['argv'][2].'/src/';
 
             if($helper!='database'){
                 $this->addHelper('table', new TableHelper($this))
