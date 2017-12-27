@@ -7,7 +7,7 @@
     private $${field} = [];
 
     /**
-    * @return array
+    * @return array | ${model}[]
     */
     public function ${getter}(){
         if(!$this->${field}){
