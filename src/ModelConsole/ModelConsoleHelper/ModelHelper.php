@@ -31,6 +31,8 @@ class ModelHelper extends AbstractHelper
 
     protected $manyToManyCascadeTemplate;
 
+    protected $oneToOneTemplate;
+
     public function __construct(ModelConsole $console)
     {
         $this->modelConsole = $console;
@@ -44,6 +46,7 @@ class ModelHelper extends AbstractHelper
             __DIR__ . '/templates/many-to-many-cascade.tpl'
         );
 
+        $this->oneToOneTemplate = file_get_contents(__DIR__.'/templates/one-to-one.tpl');
     }
 
     /**
@@ -63,6 +66,7 @@ class ModelHelper extends AbstractHelper
             MappingUtil::addColumnFieldTypeRelations($mapping);
 
             foreach ($relations[$this->bundle] as $model => $relation){
+                $model = MappingUtil::_2hump($model);
                 $modelFileContent = $this->makeModelContent($model,$relation);
                 $finderFileContent = $this->makeFinderContent($model);
                 $this->addFieldsToModelContent($modelFileContent, $relation);
@@ -79,15 +83,14 @@ class ModelHelper extends AbstractHelper
     }
 
     protected function makeModelContent($model, $relation){
-        $bundle = ucfirst($this->bundle);
-        $model = ucfirst($model);
+        $bundle = MappingUtil::_2hump($this->bundle);
         $use = '';
         if(isset($relation['mapping'])){
             $use = "use Liz\ModelManager\ModelManager;\n";
         }
         $modelFIleContent = strtr($this->modelTemplate,[
             '${app}' => $bundle,
-            '${Model}' => MappingUtil::_2hump($model),
+            '${Model}' => $model,
             '${use}' => $use,
         ]);
 
@@ -95,8 +98,7 @@ class ModelHelper extends AbstractHelper
     }
 
     protected function makeFinderContent($model){
-        $bundle = ucfirst($this->bundle);
-        $model = ucfirst($model);
+        $bundle = MappingUtil::_2hump($this->bundle);
         $modelFIleContent = strtr($this->finderTemplate,[
             '${app}' => $bundle,
             '${Model}' => $model,
@@ -144,18 +146,28 @@ class ModelHelper extends AbstractHelper
                     case 'many-to-many':
                         $modelContent .= $this->dumpManyToMany($field, $info, $relation);
                         break;
+
+                    case 'one-to-one':
+                        $modelContent .= $this->dumpOneToOne($field, $info);
+                        break;
                 }
             }
         }
     }
 
+    protected function prepareModelForManyToX($bundle, $model){
+        if(strtolower($bundle)==$this->bundle){
+            $model = MappingUtil::_2hump($model);
+        }else{
+            $model = MappingUtil::_2hump($bundle).'\Model\\'.MappingUtil::_2hump($model);
+        }
+        return $model;
+    }
+
     protected function dumpManyToOne($field, $info){
         list($bundle, $model) = explode('.', $info['which']);
-        if(strtolower($bundle)==$this->bundle){
-            $model = ucfirst($model);
-        }else{
-            $model = ucfirst($bundle).'\Model\\'.ucfirst($model);
-        }
+        $model = $this->prepareModelForManyToX($bundle, $model);
+
         list($selfField, $toField) = explode('->',$info['how']);
         $content = strtr($this->manyToOneTemplate,[
             '${model}' => $model,
@@ -169,14 +181,28 @@ class ModelHelper extends AbstractHelper
         return $content;
     }
 
+    protected function dumpOneToOne($field, $info){
+        list($bundle, $model) = explode('.', $info['which']);
+        $model = $this->prepareModelForManyToX($bundle, $model);
+
+        list($selfField, $toField) = explode('->',$info['how']);
+        $content = strtr($this->oneToOneTemplate,[
+            '${model}' => $model,
+            '${how}' => $info['how'],
+            '${field}' => $field,
+            '${getter}' => 'get'.MappingUtil::_2hump($field),
+            '${selfField}' => $selfField,
+            '${toField}' => $toField,
+            '${toGetter}' => 'get'.MappingUtil::_2hump($toField),
+        ]);
+        return $content;
+    }
+
     protected function dumpOneToMany($field, $info){
         list($bundle, $_model) = explode('.', $info['which']);
 
-        if(strtolower($bundle)==$this->bundle){
-            $model = ucfirst($_model);
-        }else{
-            $model = ucfirst($bundle).'\Model\\'.ucfirst($_model);
-        }
+        $model = $this->prepareModelForManyToX($bundle, $_model);
+
         list($selfField, $toField) = explode('->',$info['how']);
         $content = strtr($this->oneToManyTemplate,[
             '${model}' => $model,
@@ -197,11 +223,9 @@ class ModelHelper extends AbstractHelper
 
     protected function dumpManyToMany($field, $info, $relation){
         list($bundle, $_model) = explode('.', $info['which']);
-        if(strtolower($bundle)==$this->bundle){
-            $model = ucfirst($_model);
-        }else{
-            $model = ucfirst($bundle).'\Model\\'.ucfirst($_model);
-        }
+
+        $model = $this->prepareModelForManyToX($bundle, $_model);
+
         list($selfField, $toField) = explode('->',$info['how']);
         $tableInfo = [
             $relation['table'],$_model
@@ -232,9 +256,6 @@ class ModelHelper extends AbstractHelper
 
     protected function dumpModel($model, $content){
 
-        $bundle = ucfirst($this->bundle);
-        $model = ucfirst($model);
-
         $appsPath = $this->modelConsole->getAppsPath();
         $path = $appsPath."Model/".$model.".php";
         if(file_exists($path)){
@@ -246,7 +267,6 @@ class ModelHelper extends AbstractHelper
     }
 
     protected function dumpFinder($model, $content){
-        $model = ucfirst($model);
 
         $appsPath = $this->modelConsole->getAppsPath();
         $path = $appsPath."Finder/".$model."Finder.php";
