@@ -33,6 +33,8 @@ class ModelHelper extends AbstractHelper
 
     protected $oneToOneTemplate;
 
+    protected $oneToOneCascadeTemplate;
+
     public function __construct(ModelConsole $console)
     {
         $this->modelConsole = $console;
@@ -47,6 +49,7 @@ class ModelHelper extends AbstractHelper
         );
 
         $this->oneToOneTemplate = file_get_contents(__DIR__.'/templates/one-to-one.tpl');
+        $this->oneToOneCascadeTemplate = file_get_contents(__DIR__.'/templates/one-to-one-cascade.tpl');
     }
 
     /**
@@ -186,13 +189,19 @@ class ModelHelper extends AbstractHelper
         $model = $this->prepareModelForManyToX($bundle, $model);
 
         list($selfField, $toField) = explode('->',$info['how']);
-        $content = strtr($this->oneToOneTemplate,[
+        $template = $this->oneToOneTemplate;
+        if(isset($info['cascade'])&&$info['cascade']===true){
+            $template = $this->oneToOneCascadeTemplate;
+        }
+
+        $content = strtr($template,[
             '${model}' => $model,
             '${how}' => $info['how'],
             '${field}' => $field,
             '${getter}' => 'get'.MappingUtil::_2hump($field),
             '${selfField}' => $selfField,
             '${toField}' => $toField,
+            '${setter}' => 'set'.MappingUtil::_2hump($field),
             '${toGetter}' => 'get'.MappingUtil::_2hump($toField),
         ]);
         return $content;
