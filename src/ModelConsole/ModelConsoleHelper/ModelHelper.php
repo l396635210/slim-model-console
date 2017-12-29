@@ -33,6 +33,8 @@ class ModelHelper extends AbstractHelper
 
     protected $oneToOneTemplate;
 
+    protected $fieldWithValueTemplate;
+
     public function __construct(ModelConsole $console)
     {
         $this->modelConsole = $console;
@@ -47,6 +49,7 @@ class ModelHelper extends AbstractHelper
         );
 
         $this->oneToOneTemplate = file_get_contents(__DIR__.'/templates/one-to-one.tpl');
+        $this->fieldWithValueTemplate = file_get_contents(__DIR__.'/templates/field-with-value.tpl');
     }
 
     /**
@@ -116,11 +119,18 @@ class ModelHelper extends AbstractHelper
             '${setter}' => 'setID',
         ]);
         foreach ($fields as $field=>$desc){
-
+            $fieldTemplate = $this->fieldTemplate;
+            $value = "";
+            if(strstr($desc,'DEFAULT')){
+                $arr = explode(" ", $desc );
+                $value = $arr[array_search("DEFAULT")+2];
+                $fieldTemplate = $this->fieldWithValueTemplate;
+            }
             $type = MappingUtil::getFieldTypeFieldsDesc($desc);
-            $fieldFileContent = strtr($this->fieldTemplate,[
+            $fieldFileContent = strtr($fieldTemplate,[
                 '${type}' => $type,
                 '${field}' => $field,
+                '${value}' => $value,
                 '${getter}' => 'get'.MappingUtil::_2hump($field),
                 '${setter}' => 'set'.MappingUtil::_2hump($field),
             ]);

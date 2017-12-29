@@ -1,5 +1,8 @@
 # Model Console
 
+## update 2017-12-31
+    add default value to model if the field desc have 'DEFULT'
+    
 ## step 0
     mv bin/ dir to project document_root
     orm demo in the bin/ dir mv to your path
