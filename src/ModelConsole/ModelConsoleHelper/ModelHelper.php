@@ -34,6 +34,7 @@ class ModelHelper extends AbstractHelper
     protected $oneToOneTemplate;
 
     protected $fieldWithValueTemplate;
+    protected $oneToOneCascadeTemplate;
 
     public function __construct(ModelConsole $console)
     {
@@ -50,6 +51,7 @@ class ModelHelper extends AbstractHelper
 
         $this->oneToOneTemplate = file_get_contents(__DIR__.'/templates/one-to-one.tpl');
         $this->fieldWithValueTemplate = file_get_contents(__DIR__.'/templates/field-with-value.tpl');
+        $this->oneToOneCascadeTemplate = file_get_contents(__DIR__.'/templates/one-to-one-cascade.tpl');
     }
 
     /**
@@ -123,7 +125,7 @@ class ModelHelper extends AbstractHelper
             $value = "";
             if(strstr($desc,'DEFAULT')){
                 $arr = explode(" ", $desc );
-                $value = $arr[array_search("DEFAULT")+2];
+                $value = $arr[array_search("DEFAULT", $arr)+1];
                 $fieldTemplate = $this->fieldWithValueTemplate;
             }
             $type = MappingUtil::getFieldTypeFieldsDesc($desc);
@@ -196,13 +198,19 @@ class ModelHelper extends AbstractHelper
         $model = $this->prepareModelForManyToX($bundle, $model);
 
         list($selfField, $toField) = explode('->',$info['how']);
-        $content = strtr($this->oneToOneTemplate,[
+        $template = $this->oneToOneTemplate;
+        if(isset($info['cascade'])&&$info['cascade']===true){
+            $template = $this->oneToOneCascadeTemplate;
+        }
+
+        $content = strtr($template,[
             '${model}' => $model,
             '${how}' => $info['how'],
             '${field}' => $field,
             '${getter}' => 'get'.MappingUtil::_2hump($field),
             '${selfField}' => $selfField,
             '${toField}' => $toField,
+            '${setter}' => 'set'.MappingUtil::_2hump($field),
             '${toGetter}' => 'get'.MappingUtil::_2hump($toField),
         ]);
         return $content;
