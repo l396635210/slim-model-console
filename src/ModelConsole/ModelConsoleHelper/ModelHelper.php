@@ -125,7 +125,7 @@ class ModelHelper extends AbstractHelper
             $value = "";
             if(strstr($desc,'DEFAULT')){
                 $arr = explode(" ", $desc );
-                $value = $arr[array_search("DEFAULT", $arr)+1];
+                $value = trim($arr[array_search("DEFAULT", $arr)+1], ',');
                 $fieldTemplate = $this->fieldWithValueTemplate;
             }
             $type = MappingUtil::getFieldTypeFieldsDesc($desc);
