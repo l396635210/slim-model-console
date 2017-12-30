@@ -14,7 +14,7 @@
 
 ## generate model
 ```angular2html
-    php bin/console.php orm:model:generate
+    php bin/console.php orm:model:make
 ```
 
 ## table update

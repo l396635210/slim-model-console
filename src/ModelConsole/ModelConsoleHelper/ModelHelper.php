@@ -55,9 +55,9 @@ class ModelHelper extends AbstractHelper
     }
 
     /**
-     * @command orm:model:generate app
+     * @command orm:model:make app
      */
-    public function generate(){
+    public function make(){
         if(!isset($_SERVER['argv'][2])){
             $this->addError(self::$errorMissParam, $this->getMissParamMessage());
         }
