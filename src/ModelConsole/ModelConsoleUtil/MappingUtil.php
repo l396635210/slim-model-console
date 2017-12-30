@@ -21,6 +21,7 @@ class MappingUtil
         'decimal'   => 'string',
         'varchar'   => 'string',
         'text'      => 'string',
+        'longtext'  => 'string',
         'tinyint'   => 'boolean',
         'date'      => '\DateTime',
         'time'      => '\DateTime',
