@@ -76,7 +76,7 @@ class ModelHelper extends AbstractHelper
                 $finderFileContent = $this->makeFinderContent($model);
                 $this->addFieldsToModelContent($modelFileContent, $relation);
                 $this->addMappingsToModelContent($modelFileContent, $relation);
-
+                $modelFileContent .= file_get_contents(__DIR__."/templates/toArray.tpl");
                 $modelFileContent .= "\n\n}";
                 $this->dumpModel($model, $modelFileContent);
                 $this->dumpFinder($model, $finderFileContent);
