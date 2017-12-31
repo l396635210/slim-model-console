@@ -123,7 +123,7 @@ class ModelHelper extends AbstractHelper
         foreach ($fields as $field=>$desc){
             $fieldTemplate = $this->fieldTemplate;
             $value = "";
-            if(strstr($desc,'DEFAULT')){
+            if(strstr($desc,'DEFAULT') && !strstr($desc, 'CURRENT_TIMESTAMP')){
                 $arr = explode(" ", $desc );
                 $value = trim($arr[array_search("DEFAULT", $arr)+1], ',');
                 $fieldTemplate = $this->fieldWithValueTemplate;
