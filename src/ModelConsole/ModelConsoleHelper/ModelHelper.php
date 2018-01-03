@@ -71,12 +71,15 @@ class ModelHelper extends AbstractHelper
             MappingUtil::addColumnFieldTypeRelations($mapping);
 
             foreach ($relations[$this->bundle] as $model => $relation){
+
                 $model = MappingUtil::_2hump($model);
                 $modelFileContent = $this->makeModelContent($model,$relation);
                 $finderFileContent = $this->makeFinderContent($model);
                 $this->addFieldsToModelContent($modelFileContent, $relation);
                 $this->addMappingsToModelContent($modelFileContent, $relation);
-                $modelFileContent .= file_get_contents(__DIR__."/templates/toArray.tpl");
+                if(!strstr($modelFileContent, 'toArray')){
+                    $modelFileContent .= file_get_contents(__DIR__."/templates/toArray.tpl");
+                }
                 $modelFileContent .= "\n\n}";
                 $this->dumpModel($model, $modelFileContent);
                 $this->dumpFinder($model, $finderFileContent);
@@ -88,16 +91,21 @@ class ModelHelper extends AbstractHelper
     }
 
     protected function makeModelContent($model, $relation){
-        $bundle = MappingUtil::_2hump($this->bundle);
-        $use = '';
-        if(isset($relation['mapping'])){
-            $use = "use Liz\ModelManager\ModelManager;\n";
+        $modelFIleContent = $this->getExistsModelContent($model);
+        if(!$modelFIleContent){
+            $bundle = MappingUtil::_2hump($this->bundle);
+            $use = '';
+            if(isset($relation['mapping'])){
+                $use = "use Liz\ModelManager\ModelManager;\n";
+            }
+            $modelFIleContent = strtr($this->modelTemplate,[
+                '${app}' => $bundle,
+                '${Model}' => $model,
+                '${use}' => $use,
+            ]);
+        }else{
+            $modelFIleContent = trim(trim($modelFIleContent, "\t\n\r \v"),"}");
         }
-        $modelFIleContent = strtr($this->modelTemplate,[
-            '${app}' => $bundle,
-            '${Model}' => $model,
-            '${use}' => $use,
-        ]);
 
         return $modelFIleContent;
     }
@@ -114,38 +122,45 @@ class ModelHelper extends AbstractHelper
 
     protected function addFieldsToModelContent(&$modelContent, $relation){
         $fields = $relation['fields'];
-        $modelContent .= strtr($this->fieldTemplate,[
-            '${type}' => 'int',
-            '${field}' => 'id',
-            '${getter}' => 'getID',
-            '${setter}' => 'setID',
-        ]);
-        foreach ($fields as $field=>$desc){
-            $fieldTemplate = $this->fieldTemplate;
-            $value = "";
-            if(strstr($desc,'DEFAULT') && !strstr($desc, 'CURRENT_TIMESTAMP')){
-                $arr = explode(" ", $desc );
-                $value = trim($arr[array_search("DEFAULT", $arr)+1], ',');
-                $fieldTemplate = $this->fieldWithValueTemplate;
-            }
-            $type = MappingUtil::getFieldTypeFieldsDesc($desc);
-            $fieldFileContent = strtr($fieldTemplate,[
-                '${type}' => $type,
-                '${field}' => $field,
-                '${value}' => $value,
-                '${getter}' => 'get'.MappingUtil::_2hump($field),
-                '${setter}' => 'set'.MappingUtil::_2hump($field),
+        if(!strstr($modelContent, "private \$id")) {
+            $modelContent .= strtr($this->fieldTemplate, [
+                '${type}' => 'int',
+                '${field}' => 'id',
+                '${getter}' => 'getID',
+                '${setter}' => 'setID',
             ]);
-            $modelContent .= $fieldFileContent;
+        }
+        foreach ($fields as $field=>$desc){
+            if(!strstr($modelContent, "private \$$field")){
+                $fieldTemplate = $this->fieldTemplate;
+                $value = "";
+                if(strstr($desc,'DEFAULT') && !strstr($desc, 'CURRENT_TIMESTAMP')){
+                    $arr = explode(" ", $desc );
+                    $value = trim($arr[array_search("DEFAULT", $arr)+1], ',');
+                    $fieldTemplate = $this->fieldWithValueTemplate;
+                }
+                $type = MappingUtil::getFieldTypeFieldsDesc($desc);
+                $fieldFileContent = strtr($fieldTemplate,[
+                    '${type}' => $type,
+                    '${field}' => $field,
+                    '${value}' => $value,
+                    '${getter}' => 'get'.MappingUtil::_2hump($field),
+                    '${setter}' => 'set'.MappingUtil::_2hump($field),
+                ]);
+                $modelContent .= $fieldFileContent;
+            }
         }
 
     }
 
     protected function addMappingsToModelContent(&$modelContent, $relation){
-        if(isset($relation['mapping'])){
-            $mapping = $relation['mapping'];
+        if(!isset($relation['mapping'])){
+            return false;
+        }
+        $mapping = $relation['mapping'];
 
-            foreach ($mapping as $field=>$info){
+        foreach ($mapping as $field=>$info){
+            if(!strstr($modelContent, "private \$$field")){
                 switch ($info['what']){
                     case 'many-to-one':
                         $modelContent .= $this->dumpManyToOne($field, $info);
@@ -270,6 +285,15 @@ class ModelHelper extends AbstractHelper
             '${toGetter}' => 'get'.MappingUtil::_2hump($toField),
         ]);
         return $content;
+    }
+
+    protected function getExistsModelContent($model){
+        $appsPath = $this->modelConsole->getAppsPath();
+        $path = $appsPath."Model/".$model.".php";
+        if(file_exists($path)){
+            return file_get_contents($path);
+        }
+        return "";
     }
 
     protected function dumpModel($model, $content){
