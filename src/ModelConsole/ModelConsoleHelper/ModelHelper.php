@@ -168,8 +168,8 @@ class ModelHelper extends AbstractHelper
 
         foreach ($mapping as $field=>$info){
             if(!strstr($modelContent, "private \$$field;")
-                || !strstr($modelContent, "private \$$field =")
-                || !strstr($modelContent, "private \$$field=")
+                && !strstr($modelContent, "private \$$field =")
+                && !strstr($modelContent, "private \$$field=")
             ){
                 switch ($info['what']){
                     case 'many-to-one':
