@@ -167,7 +167,10 @@ class ModelHelper extends AbstractHelper
         $mapping = $relation['mapping'];
 
         foreach ($mapping as $field=>$info){
-            if(!strstr($modelContent, "private \$$field;")){
+            if(!strstr($modelContent, "private \$$field;")
+                || !strstr($modelContent, "private \$$field =")
+                || !strstr($modelContent, "private \$$field=")
+            ){
                 switch ($info['what']){
                     case 'many-to-one':
                         $modelContent .= $this->dumpManyToOne($field, $info);
