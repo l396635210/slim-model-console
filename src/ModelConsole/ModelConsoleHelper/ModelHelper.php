@@ -92,18 +92,25 @@ class ModelHelper extends AbstractHelper
 
     protected function makeModelContent($model, $relation){
         $modelFIleContent = $this->getExistsModelContent($model);
+        $use = '';
+        if(isset($relation['mapping'])){
+            $use = "use Liz\ModelManager\ModelManager;\n";
+        }
+
         if(!$modelFIleContent){
             $bundle = MappingUtil::_2hump($this->bundle);
-            $use = '';
-            if(isset($relation['mapping'])){
-                $use = "use Liz\ModelManager\ModelManager;\n";
-            }
+
             $modelFIleContent = strtr($this->modelTemplate,[
                 '${app}' => $bundle,
                 '${Model}' => $model,
                 '${use}' => $use,
             ]);
         }else{
+            $contentExplode = explode("class {$model}", $modelFIleContent);
+            if($use && !strstr($contentExplode[0], $use)){
+                $contentExplode[0] .= $use;
+            }
+            $modelFIleContent = implode("class {$model}", $contentExplode);
             $modelFIleContent = trim(trim($modelFIleContent, "\t\n\r \v"),"}");
         }
 
@@ -301,7 +308,7 @@ class ModelHelper extends AbstractHelper
         $appsPath = $this->modelConsole->getAppsPath();
         $path = $appsPath."Model/".$model.".php";
         if(file_exists($path)){
-            copy($path, $path.".bkp");
+            copy($path, $path.".~");
         }
         if(file_put_contents($path, $content)){
             $this->addMessage("put file {$path} done! create model {$model} success!");
