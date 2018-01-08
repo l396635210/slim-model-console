@@ -107,7 +107,7 @@ class ModelHelper extends AbstractHelper
             ]);
         }else{
             $contentExplode = explode("class {$model}", $modelFIleContent);
-            if($use && !strstr($contentExplode[0], $use)){
+            if($use && !strstr($contentExplode[0], trim($use))){
                 $contentExplode[0] .= $use;
             }
             $modelFIleContent = implode("class {$model}", $contentExplode);
