@@ -1,7 +1,7 @@
 {
   "name" : "liz/model-console",
   "description" : "a slim model console",
-  "type" : "model console",
+  "type" : "library",
   "authors" : [{
     "name" : "liz",
     "email" : "demo@company.com"
