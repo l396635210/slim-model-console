@@ -47,7 +47,7 @@
     public function ${getter}(){
         if(!$this->${field}){
             $this->${field} = ModelManager::getInstance()->getMappingTable('${table}')
-            ->findSet($this, ${model}::class, '${setID}');
+            ->findSet($this, ${model}::class, ['${modelID}' => '${setID}']);
         }
         return $this->${field};
     }
