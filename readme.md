@@ -22,5 +22,5 @@ this command will make the app's models to  dir /app/src/Finder and finders to  
 ## table update
 this command will update table by config file
 ```php
-    php bin/console.php orm:table:update
+    php bin/console.php orm:table:update app
 ```
